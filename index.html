@@ -3,87 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Космічний калькулятор</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <title>Space Math</title>
     <style>
         body {
-            background-color: #0a0f25;
-            color: #fff;
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-image: url('https://source.unsplash.com/1600x900/?space,stars');
-            background-size: cover;
+            background-color: #1a0e05;
+            color: #ffcc80;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
         }
-        .container {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 15px;
-            display: inline-block;
-        }
-        input, button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: none;
-        }
-        input {
+        textarea {
             width: 80%;
+            height: 200px;
+            background: #331a0f;
+            color: #ffcc80;
+            border: 2px solid #ff8c42;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ff8c42;
         }
         button {
-            background-color: #6200ea;
-            color: white;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #ff8c42;
+            border: none;
+            color: #1a0e05;
+            font-size: 18px;
             cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 10px #ff8c42;
         }
         button:hover {
-            background-color: #3700b3;
+            background: #e07a3b;
+            box-shadow: 0 0 15px #e07a3b;
         }
-        .result {
+        #output {
             margin-top: 20px;
             font-size: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #331a0f;
             padding: 10px;
-            border-radius: 10px;
-            display: inline-block;
+            border: 2px solid #ff8c42;
+            color: #ffcc80;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ff8c42;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Космічний калькулятор</h1>
-        <input type="text" id="expression" placeholder="Введіть вираз...">
-        <button onclick="calculate()">Обчислити</button>
-        <div class="result" id="result"></div>
-    </div>
-    
-    <script>
-        async function loadPyodideAndRun() {
-            window.pyodide = await loadPyodide();
-            await pyodide.loadPackage("sympy");
-        }
-        loadPyodideAndRun();
+    <h1>Space Math</h1>
+    <textarea id="input" placeholder="Введіть математичний вираз..."></textarea>
+    <button onclick="calculate()">Обчислити</button>
+    <div id="output"></div>
 
-        async function calculate() {
-            const expression = document.getElementById("expression").value;
+    <script>
+        function calculate() {
+            let input = document.getElementById("input").value;
             try {
-                const result = await pyodide.runPythonAsync(`
-                    from sympy import sympify, simplify, diff, integrate
-                    expr = sympify("""${expression}""")
-                    {
-                        "simplify": simplify(expr),
-                        "derivative": diff(expr),
-                        "integral": integrate(expr)
-                    }
-                `);
-                const parsedResult = JSON.parse(result.replace(/'/g, '"'));
-                document.getElementById("result").innerHTML = `
-                    <strong>Спрощений вираз:</strong> ${parsedResult.simplify} <br>
-                    <strong>Похідна:</strong> ${parsedResult.derivative} <br>
-                    <strong>Інтеграл:</strong> ${parsedResult.integral} + C
-                `;
+                let result = eval(input);
+                document.getElementById("output").innerText = "Результат: " + result;
             } catch (e) {
-                document.getElementById("result").innerText = "Помилка у виразі!";
+                document.getElementById("output").innerText = "Помилка у виразі!";
             }
         }
     </script>
