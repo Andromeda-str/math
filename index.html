@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Math</title>
+    <title>Space Math Pro</title>
     <style>
         body {
             background-color: #1a0e05;
@@ -14,6 +14,7 @@
             align-items: center;
             height: 100vh;
             flex-direction: column;
+            margin: 0;
         }
         textarea {
             width: 80%;
@@ -51,20 +52,23 @@
             color: #ffcc80;
             border-radius: 8px;
             box-shadow: 0 0 10px #ff8c42;
+            width: 80%;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h1>Space Math</h1>
+    <h1>Space Math Pro</h1>
     <textarea id="input" placeholder="Введіть математичний вираз..."></textarea>
     <button onclick="calculate()">Обчислити</button>
     <div id="output"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.7.0/math.min.js"></script>
     <script>
         function calculate() {
             let input = document.getElementById("input").value;
             try {
-                let result = eval(input);
+                let result = math.evaluate(input);
                 document.getElementById("output").innerText = "Результат: " + result;
             } catch (e) {
                 document.getElementById("output").innerText = "Помилка у виразі!";
