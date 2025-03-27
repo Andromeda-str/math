@@ -3,72 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Math</title>
+    <title>Калькулятор</title>
     <style>
         body {
-            background-color: #1a0e05;
-            color: #ffcc80;
+            background-color: #0a0f25;
+            color: #fff;
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
+            text-align: center;
+            padding: 20px;
         }
-        textarea {
-            width: 80%;
-            height: 200px;
-            background: #331a0f;
-            color: #ffcc80;
-            border: 2px solid #ff8c42;
+        input, button {
             padding: 10px;
-            font-size: 18px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px #ff8c42;
+            margin: 5px;
+            font-size: 16px;
         }
-        button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: #ff8c42;
-            border: none;
-            color: #1a0e05;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background 0.3s, box-shadow 0.3s;
-            box-shadow: 0 0 10px #ff8c42;
-        }
-        button:hover {
-            background: #e07a3b;
-            box-shadow: 0 0 15px #e07a3b;
-        }
-        #output {
+        .result {
             margin-top: 20px;
             font-size: 20px;
-            background: #331a0f;
-            padding: 10px;
-            border: 2px solid #ff8c42;
-            color: #ffcc80;
-            border-radius: 8px;
-            box-shadow: 0 0 10px #ff8c42;
         }
     </style>
 </head>
 <body>
-    <h1>Space Math</h1>
-    <textarea id="input" placeholder="Введіть математичний вираз..."></textarea>
+    <h1>Космічний калькулятор</h1>
+    <input type="text" id="expression" placeholder="Введіть вираз...">
     <button onclick="calculate()">Обчислити</button>
-    <div id="output"></div>
-
+    <div class="result" id="result"></div>
+    
     <script>
-        function calculate() {
-            let input = document.getElementById("input").value;
-            try {
-                let result = eval(input);
-                document.getElementById("output").innerText = "Результат: " + result;
-            } catch (e) {
-                document.getElementById("output").innerText = "Помилка у виразі!";
-            }
+        async function calculate() {
+            const expression = document.getElementById("expression").value;
+            const response = await fetch("https://your-backend.com/calculate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ expression })
+            });
+            const data = await response.json();
+            document.getElementById("result").innerText = data.result;
         }
     </script>
 </body>
