@@ -3,32 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор</title>
+    <title>Космічний калькулятор</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <style>
         body {
             background-color: #0a0f25;
             color: #fff;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             padding: 20px;
+            background-image: url('https://source.unsplash.com/1600x900/?space,stars');
+            background-size: cover;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
         }
         input, button {
             padding: 10px;
             margin: 5px;
             font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+        input {
+            width: 80%;
+        }
+        button {
+            background-color: #6200ea;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3700b3;
         }
         .result {
             margin-top: 20px;
             font-size: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <h1>Космічний калькулятор</h1>
-    <input type="text" id="expression" placeholder="Введіть вираз...">
-    <button onclick="calculate()">Обчислити</button>
-    <div class="result" id="result"></div>
+    <div class="container">
+        <h1>🚀 Космічний калькулятор</h1>
+        <input type="text" id="expression" placeholder="Введіть вираз...">
+        <button onclick="calculate()">Обчислити</button>
+        <div class="result" id="result"></div>
+    </div>
     
     <script>
         async function loadPyodideAndRun() {
@@ -41,10 +68,20 @@
             const expression = document.getElementById("expression").value;
             try {
                 const result = await pyodide.runPythonAsync(`
-                    from sympy import sympify, simplify
-                    simplify(sympify("""${expression}"""))
+                    from sympy import sympify, simplify, diff, integrate
+                    expr = sympify("""${expression}""")
+                    {
+                        "simplify": simplify(expr),
+                        "derivative": diff(expr),
+                        "integral": integrate(expr)
+                    }
                 `);
-                document.getElementById("result").innerText = result;
+                const parsedResult = JSON.parse(result.replace(/'/g, '"'));
+                document.getElementById("result").innerHTML = `
+                    <strong>Спрощений вираз:</strong> ${parsedResult.simplify} <br>
+                    <strong>Похідна:</strong> ${parsedResult.derivative} <br>
+                    <strong>Інтеграл:</strong> ${parsedResult.integral} + C
+                `;
             } catch (e) {
                 document.getElementById("result").innerText = "Помилка у виразі!";
             }
