@@ -65,15 +65,27 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.7.0/math.min.js"></script>
     <script>
-        function calculate() {
-            let input = document.getElementById("input").value;
-            try {
-                let result = math.evaluate(input);
-                document.getElementById("output").innerText = "Результат: " + result;
-            } catch (e) {
-                document.getElementById("output").innerText = "Помилка у виразі!";
-            }
+       function calculate() {
+    let input = document.getElementById("input").value;
+    try {
+        // Розширений аналіз виразів
+        let result;
+        if (input.includes("limit")) {
+            result = math.evaluate(input); // Ліміти
+        } else if (input.includes("derivative")) {
+            let [expr, variable] = input.match(/\((.*),\s*(\w+)\)/).slice(1); // Розбір виразу
+            result = math.derivative(expr, variable).toString();
+        } else if (input.includes("integrate")) {
+            result = "Math.js не підтримує аналітичні інтеграли безпосередньо"; // Лише спрощені інтеграли
+        } else {
+            result = math.evaluate(input); // Простий вираз
         }
+        document.getElementById("output").innerText = "Результат: " + result;
+    } catch (e) {
+        document.getElementById("output").innerText = "Помилка: " + e.message;
+        console.error("Деталі помилки:", e);
+    }
+}
     </script>
 </body>
 </html>
