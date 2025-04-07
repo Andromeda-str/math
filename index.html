@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>MathCAD Light</title>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -12,6 +11,7 @@
       padding: 2rem;
       text-align: center;
     }
+
     #editor {
       width: 90%;
       height: 150px;
@@ -22,9 +22,11 @@
       color: #0ff;
       border: 1px solid #0ff;
     }
+
     .button-panel {
       margin-top: 1rem;
     }
+
     .math-button {
       font-size: 1.1rem;
       padding: 0.5rem 1rem;
@@ -35,25 +37,43 @@
       color: #0ff;
       cursor: pointer;
     }
+
     .math-button:hover {
       background: #0ff;
       color: #000;
     }
+
     #output {
-      	margin-top: 2rem;
-  	font-size: 1.4rem;
-  	padding: 1rem 2rem;
-  	border-radius: 16px;
-  	background: rgba(0, 255, 255, 0.1);
-  	backdrop-filter: blur(10px);
-  	border: 1px solid rgba(0, 255, 255, 0.4);
-  	box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
- 	color: #0ff;
-  	text-shadow: 0 0 8px #0ff;
-  	display: inline-block;
-  	max-width: 80%;
-  	word-wrap: break-word;
-  	transition: all 0.3s ease;    
+      margin-top: 2rem;
+      font-size: 1.4rem;
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      background: rgba(0, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      color: #0ff;
+      text-shadow: 0 0 8px #0ff;
+      display: inline-block;
+      max-width: 80%;
+      word-wrap: break-word;
+      transition: all 0.3s ease;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink {
+      50% { border-color: transparent }
+    }
+
+    .typewriter {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid #0ff;
+      animation: typing 2s steps(40, end), blink 0.75s step-end infinite;
     }
   </style>
 </head>
@@ -63,51 +83,34 @@
   <textarea id="editor" placeholder="Введіть математичний вираз..."></textarea>
 
   <div class="button-panel">
-    <button class="math-button" onclick="insert('integrate(x**2, x)')">∫</button>
-    <button class="math-button" onclick="insert('diff(sin(x), x)')">∂</button>
-    <button class="math-button" onclick="insert('sum(i**2, (i,1,10))')">∑</button>
-    <button class="math-button" onclick="insert('limit(1/x, x, 0)')">lim</button>
-    <button class="math-button" onclick="insert('sqrt(2)')">√</button>
-    <button class="math-button" onclick="insert('pi')">π</button>
-    <button class="math-button" onclick="insert('oo')">∞</button>
-    <button class="math-button" onclick="insert('abs(-5)')">| |</button>
-    <button class="math-button" onclick="runPython()">🔍 Обчислити</button>
+    <button class="math-button" onclick="insert('∫( ) dx')">∫</button>
+    <button class="math-button" onclick="insert('∬( ) dxdy')">∬</button>
+    <button class="math-button" onclick="insert('∂')">∂</button>
+    <button class="math-button" onclick="insert('∑( )')">∑</button>
+    <button class="math-button" onclick="insert('lim(x→ )')">lim</button>
+    <button class="math-button" onclick="insert('√()')">√</button>
+    <button class="math-button" onclick="insert('π')">π</button>
+    <button class="math-button" onclick="insert('∞')">∞</button>
+    <button class="math-button" onclick="insert('^')">^</button>
+    <button class="math-button" onclick="insert('| |')">| |</button>
   </div>
 
-  <div id="output">Результат: ...</div>
+  <div style="margin-top: 1rem;">
+    <button class="math-button" onclick="runPython()">Обчислити</button>
+  </div>
 
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <script>
-    let pyodideReady = false;
+    let pyodide;
+
     async function loadPyodideAndPackages() {
-      window.pyodide = await loadPyodide();
+      pyodide = await loadPyodide();
       await pyodide.loadPackage("sympy");
-      pyodideReady = true;
     }
 
     loadPyodideAndPackages();
-
-    async function runPython() {
-      if (!pyodideReady) {
-        document.getElementById("output").innerText = "Завантаження Python...";
-        return;
-      }
-
-      const expr = document.getElementById("editor").value;
-
-      const code = `
-from sympy import *
-from sympy.abc import *
-init_printing()
-try:
-    result = str(eval(${JSON.stringify(expr)}))
-except Exception as e:
-    result = "❌ Помилка: " + str(e)
-result
-      `;
-
-      const result = await pyodide.runPythonAsync(code);
-      document.getElementById("output").innerText = "Результат: " + result;
-    }
 
     function insert(text) {
       const editor = document.getElementById("editor");
@@ -116,6 +119,51 @@ result
       editor.value = editor.value.substring(0, start) + text + editor.value.substring(end);
       editor.focus();
       editor.selectionEnd = start + text.length;
+    }
+
+    const symbolMap = {
+      'sqrt': '√',
+      'pi': 'π',
+      'int': '∫',
+      'sum': '∑',
+      'oo': '∞',
+      'abs': '| |',
+      '->': '→',
+      'lim': 'lim',
+    };
+
+    document.getElementById("editor").addEventListener("input", () => {
+      const editor = document.getElementById("editor");
+      for (let key in symbolMap) {
+        const regex = new RegExp(key + '$');
+        editor.value = editor.value.replace(regex, symbolMap[key]);
+      }
+    });
+
+    function preprocessMathInput(input) {
+      return input
+        .replace(/√\((.*?)\)/g, 'sqrt($1)')
+        .replace(/π/g, 'pi')
+        .replace(/∞/g, 'oo')
+        .replace(/∫\((.*?)\) dx/g, 'integrate($1, x)')
+        .replace(/∬\((.*?)\) dxdy/g, 'integrate(integrate($1, x), y)')
+        .replace(/∑\((.*?)\)/g, 'sum($1)')
+        .replace(/\|\s*(.*?)\s*\|/g, 'abs($1)');
+    }
+
+    async function runPython() {
+      const code = preprocessMathInput(document.getElementById("editor").value);
+      const result = await pyodide.runPythonAsync(`
+        from sympy import *
+        x, y = symbols('x y')
+        ${code}
+      `);
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = "";
+      const span = document.createElement("span");
+      span.className = "typewriter";
+      span.textContent = "Результат: " + result;
+      outputDiv.appendChild(span);
     }
   </script>
 </body>
