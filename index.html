@@ -1,198 +1,417 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>MathCAD Light</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle, #0a0a23, #000000);
-      color: white;
-      padding: 2rem;
-      text-align: center;
-    }
-
-    #editor {
-      width: 90%;
-      height: 150px;
-      font-size: 1.2rem;
-      padding: 1rem;
-      border-radius: 12px;
-      background: #111;
-      color: #0ff;
-      border: 1px solid #0ff;
-    }
-
-    .button-panel {
-      margin-top: 1rem;
-    }
-
-    .math-button {
-      font-size: 1.1rem;
-      padding: 0.5rem 1rem;
-      margin: 0.2rem;
-      border: none;
-      border-radius: 8px;
-      background: #222;
-      color: #0ff;
-      cursor: pointer;
-    }
-
-    .math-button:hover {
-      background: #0ff;
-      color: #000;
-    }
-
-    #output {
-      margin-top: 2rem;
-      font-size: 1.4rem;
-      padding: 1rem 2rem;
-      border-radius: 16px;
-      background: rgba(0, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 255, 255, 0.4);
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-      color: #0ff;
-      text-shadow: 0 0 8px #0ff;
-      display: inline-block;
-      max-width: 80%;
-      word-wrap: break-word;
-    }
-
-    #progress-bar-container {
-      position: relative;
-      width: 90%;
-      background: #111;
-      height: 8px;
-      border-radius: 10px;
-      margin: 20px auto 0;
-      overflow: hidden;
-      border: 1px solid #0ff;
-    }
-
-    #progress-bar {
-      position: absolute;
-      height: 100%;
-      background: #0ff;
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathCAD Light - MWP</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2.2rem;
+        }
+        
+        .input-section {
+            margin-bottom: 25px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Consolas', monospace;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+        
+        .symbol-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .symbol-btn {
+            padding: 10px 18px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .symbol-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .symbol-btn:active {
+            transform: translateY(0);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .calculate-btn {
+            background-color: var(--accent-color);
+            color: white;
+            flex-grow: 1;
+        }
+        
+        .clear-btn {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .output-section {
+            margin-top: 35px;
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            min-height: 120px;
+            border: 2px dashed #d6d8db;
+            transition: all 0.5s ease;
+        }
+        
+        .output-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+        
+        #math-output {
+            font-family: 'Consolas', monospace;
+            font-size: 18px;
+            min-height: 30px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status {
+            margin-top: 15px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        /* Анімації */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        /* Адаптація для мобільних */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .input-field {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .symbol-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>MathCAD Light (MWP)</h1>
+        
+        <div class="input-section">
+            <label for="math-input" class="input-label">Введіть математичний вираз:</label>
+            <input type="text" id="math-input" class="input-field" 
+                   placeholder="Наприклад: π * r², √(9), ∫(x²)dx, sin(π/2), Sum(k, (k, 1, 10))">
+            
+            <div class="symbol-buttons">
+                <button class="symbol-btn" onclick="insertSymbol('π')">π</button>
+                <button class="symbol-btn" onclick="insertSymbol('√()')">√</button>
+                <button class="symbol-btn" onclick="insertSymbol('∫(, )dx')">∫</button>
+                <button class="symbol-btn" onclick="insertSymbol('∑(, (, , ))')">∑</button>
+                <button class="symbol-btn" onclick="insertSymbol('∂')">∂</button>
+                <button class="symbol-btn" onclick="insertSymbol('∞')">∞</button>
+                <button class="symbol-btn" onclick="insertSymbol('| |')">|x|</button>
+                <button class="symbol-btn" onclick="insertSymbol('~')">~</button>
+                <button class="symbol-btn" onclick="insertSymbol('(')">(</button>
+                <button class="symbol-btn" onclick="insertSymbol(')')">)</button>
+                <button class="symbol-btn" onclick="insertSymbol('^')">^</button>
+                <button class="symbol-btn" onclick="insertSymbol('*')">×</button>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="calculate-btn" class="action-btn calculate-btn" onclick="calculateExpression()">
+                    Обчислити
+                </button>
+                <button class="action-btn clear-btn" onclick="clearFields()">Очистити</button>
+            </div>
+        </div>
+        
+        <div class="output-section" id="output-section">
+            <div class="output-title">Результат:</div>
+            <div id="math-output">Введіть вираз та натисніть "Обчислити"...</div>
+            <div id="status" class="status"></div>
+        </div>
+    </div>
 
-  <h1>🚀 MathCAD Light</h1>
-  <textarea id="editor" placeholder="Введіть математичний вираз..."></textarea>
-
-  <div class="button-panel">
-    <button class="math-button" onclick="insert('∫( ) dx')">∫</button>
-    <button class="math-button" onclick="insert('∬( ) dxdy')">∬</button>
-    <button class="math-button" onclick="insert('∂')">∂</button>
-    <button class="math-button" onclick="insert('∑( )')">∑</button>
-    <button class="math-button" onclick="insert('lim(x→ )')">lim</button>
-    <button class="math-button" onclick="insert('√()')">√</button>
-    <button class="math-button" onclick="insert('π')">π</button>
-    <button class="math-button" onclick="insert('∞')">∞</button>
-    <button class="math-button" onclick="insert('^')">^</button>
-    <button class="math-button" onclick="insert('| |')">| |</button>
-  </div>
-
-  <div style="margin-top: 1rem;">
-    <button class="math-button" onclick="runPython()">Обчислити</button>
-  </div>
-
-  <div id="progress-bar-container">
-    <div id="progress-bar"></div>
-  </div>
-
-  <div id="output"></div>
-
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-  <script>
-    let pyodide;
-    const cachedResults = {}; // Кеш результатів
-
-    async function loadPyodideAndPackages() {
-      pyodide = await loadPyodide();
-      await pyodide.loadPackage("sympy"); // Завантаження SymPy
-      pyodide.runPython(`
-        from sympy import *
-        x, y = symbols('x y')
-      `);
-    }
-
-    loadPyodideAndPackages();
-
-    function insert(text) {
-      const editor = document.getElementById("editor");
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      editor.value = editor.value.substring(0, start) + text + editor.value.substring(end);
-      editor.focus();
-      editor.selectionEnd = start + text.length;
-    }
-
-    function preprocessMathInput(input) {
-      return input
-        .replace(/\^/g, '**') // Заміна ^ на **
-        .replace(/√\((.*?)\)/g, 'sqrt($1)')
-        .replace(/π/g, 'pi')
-        .replace(/∞/g, 'oo')
-        .replace(/∫\((.*?)\) dx/g, 'integrate($1, x)')
-        .replace(/∬\((.*?)\) dxdy/g, 'integrate(integrate($1, x), y)')
-        .replace(/∑\((.*?)\)/g, 'sum($1)')
-        .replace(/\|\s*(.*?)\s*\|/g, 'abs($1)')
-        .replace(/→/g, '->'); // Заміна → на ->
-    }
-
-    async function runPython() {
-      const input = document.getElementById("editor").value.trim();
-      const processedInput = preprocessMathInput(input);
-
-      // Перевірка кешу
-      if (cachedResults[processedInput]) {
-        displayResult(cachedResults[processedInput]);
-        return;
-      }
-
-      startProgressBar();
-
-      try {
-        const result = await pyodide.runPythonAsync(processedInput);
-        cachedResults[processedInput] = result; // Збереження результату в кеш
-        displayResult(result);
-      } catch (error) {
-        displayError(error);
-      } finally {
-        completeProgressBar();
-      }
-    }
-
-    function displayResult(result) {
-      const outputDiv = document.getElementById("output");
-      outputDiv.innerHTML = `Результат: ${result}`;
-    }
-
-    function displayError(error) {
-      const outputDiv = document.getElementById("output");
-      outputDiv.innerHTML = `Помилка: ${error.message}`;
-    }
-
-    function startProgressBar() {
-      const progressBar = document.getElementById("progress-bar");
-      progressBar.style.width = "0%";
-
-      setTimeout(() => {
-        progressBar.style.width = "50%"; // Імітація прогресу до 50%
-      }, 300);
-    }
-
-    function completeProgressBar() {
-      const progressBar = document.getElementById("progress-bar");
-      setTimeout(() => {
-        progressBar.style.width = "100%"; // Завершення прогресу
-      }, 500);
-    }
-  </script>
+    <!-- Підключаємо Pyodide для виконання Python коду в браузері -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script>
+        let pyodide;
+        let pythonLoaded = false;
+        
+        // Ініціалізація Pyodide
+        async function initializePyodide() {
+            updateStatus("Завантаження Python...");
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"
+            });
+            
+            updateStatus("Встановлення SymPy...");
+            await pyodide.loadPackage("micropip");
+            await pyodide.runPythonAsync(`
+                import micropip
+                await micropip.install('sympy')
+            `);
+            
+            // Ініціалізуємо SymPy
+            await pyodide.runPythonAsync(`
+                from sympy import *
+                from sympy.abc import *
+                init_printing(use_unicode=True)
+            `);
+            
+            updateStatus("Готово до обчислень!");
+            pythonLoaded = true;
+            document.getElementById('calculate-btn').disabled = false;
+            
+            // Ховаємо статус через 2 секунди
+            setTimeout(() => {
+                document.getElementById('status').textContent = '';
+            }, 2000);
+        }
+        
+        // Запускаємо ініціалізацію при завантаженні сторінки
+        initializePyodide();
+        
+        // Функція для оновлення статусу
+        function updateStatus(message) {
+            const statusElement = document.getElementById('status');
+            statusElement.innerHTML = `<span class="loading"></span>${message}`;
+        }
+        
+        // Функція для вставки символів у поле введення
+        function insertSymbol(symbol) {
+            const inputField = document.getElementById('math-input');
+            const startPos = inputField.selectionStart;
+            const endPos = inputField.selectionEnd;
+            const currentValue = inputField.value;
+            
+            // Спеціальна обробка для символів з комами (для розміщення курсору)
+            if (symbol.includes(',')) {
+                const parts = symbol.split(',');
+                const newSymbol = parts.join('');
+                const cursorOffset = parts[0].length;
+                
+                inputField.value = currentValue.substring(0, startPos) + newSymbol + currentValue.substring(endPos);
+                inputField.setSelectionRange(startPos + cursorOffset, startPos + cursorOffset);
+            } else {
+                inputField.value = currentValue.substring(0, startPos) + symbol + currentValue.substring(endPos);
+                inputField.setSelectionRange(startPos + symbol.length, startPos + symbol.length);
+            }
+            
+            inputField.focus();
+        }
+        
+        // Автозаміна при введенні з клавіатури
+        document.getElementById('math-input').addEventListener('input', function(e) {
+            let value = e.target.value;
+            
+            const replacements = {
+                'pi': 'π',
+                'sqrt': '√',
+                'int': '∫',
+                'sum': '∑',
+                'oo': '∞',
+                'alpha': 'α',
+                'beta': 'β',
+                'gamma': 'γ',
+                'delta': 'δ',
+                'theta': 'θ',
+                'lambda': 'λ',
+                'sigma': 'σ',
+                'omega': 'ω'
+            };
+            
+            for (const [key, replacement] of Object.entries(replacements)) {
+                value = value.replace(new RegExp(`\\b${key}\\b`, 'g'), replacement);
+            }
+            
+            if (value !== e.target.value) {
+                const cursorPos = e.target.selectionStart;
+                e.target.value = value;
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            }
+        });
+        
+        // Обробка натискання Enter у полі введення
+        document.getElementById('math-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                calculateExpression();
+            }
+        });
+        
+        // Функція для обчислення виразу
+        async function calculateExpression() {
+            if (!pythonLoaded) {
+                updateStatus("Python ще завантажується...");
+                return;
+            }
+            
+            const inputField = document.getElementById('math-input');
+            const expression = inputField.value.trim();
+            
+            if (!expression) {
+                updateStatus("Будь ласка, введіть вираз");
+                return;
+            }
+            
+            updateStatus("Обчислення...");
+            document.getElementById('calculate-btn').disabled = true;
+            
+            try {
+                // Замінюємо символи назад на SymPy-зрозумілі форми
+                let processedExpr = expression
+                    .replace(/π/g, 'pi')
+                    .replace(/√/g, 'sqrt')
+                    .replace(/∫/g, 'integrate')
+                    .replace(/∑/g, 'Sum')
+                    .replace(/∞/g, 'oo');
+                
+                // Виконуємо обчислення
+                const result = await pyodide.runPythonAsync(`
+                    from sympy import *
+                    from sympy.abc import *
+                    expr = sympify("${processedExpr}", evaluate=False)
+                    str(expr) + " = " + str(expr.doit())
+                `);
+                
+                // Виводимо результат
+                document.getElementById('math-output').innerHTML = result;
+                document.getElementById('output-section').classList.add('fade-in');
+                updateStatus("Обчислення завершено");
+            } catch (error) {
+                document.getElementById('math-output').textContent = 
+                    `Помилка: ${error.message.split('\n')[0]}`;
+                updateStatus("Сталася помилка");
+            } finally {
+                document.getElementById('calculate-btn').disabled = false;
+                
+                // Ховаємо статус через 3 секунди
+                setTimeout(() => {
+                    document.getElementById('status').textContent = '';
+                }, 3000);
+            }
+        }
+        
+        // Функція для очищення полів
+        function clearFields() {
+            document.getElementById('math-input').value = '';
+            document.getElementById('math-output').textContent = 'Введіть вираз та натисніть "Обчислити"...';
+            document.getElementById('math-input').focus();
+        }
+    </script>
 </body>
 </html>
