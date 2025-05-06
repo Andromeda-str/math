@@ -9,6 +9,7 @@
             --primary-color: #3498db;
             --secondary-color: #2c3e50;
             --accent-color: #e74c3c;
+            --graph-color: #2ecc71;
             --light-color: #ecf0f1;
             --dark-color: #34495e;
         }
@@ -117,6 +118,12 @@
             flex-grow: 1;
         }
         
+        .graph-btn {
+            background-color: var(--graph-color);
+            color: white;
+            flex-grow: 1;
+        }
+        
         .clear-btn {
             background-color: var(--light-color);
             color: var(--dark-color);
@@ -148,6 +155,17 @@
             font-family: 'Consolas', monospace;
             font-size: 18px;
             min-height: 30px;
+        }
+        
+        #graph-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        #graph-image {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .loading {
@@ -235,6 +253,9 @@
                 <button id="calculate-btn" class="action-btn calculate-btn" onclick="calculateExpression()">
                     Обчислити
                 </button>
+                <button id="graph-btn" class="action-btn graph-btn" onclick="plotExpression()">
+                    Графік
+                </button>
                 <button class="action-btn clear-btn" onclick="clearFields()">Очистити</button>
             </div>
         </div>
@@ -242,6 +263,9 @@
         <div class="output-section" id="output-section">
             <div class="output-title">Результат:</div>
             <div id="math-output">Введіть вираз та натисніть "Обчислити"...</div>
+            <div id="graph-container" style="display: none;">
+                <img id="graph-image" alt="Графік функції">
+            </div>
             <div id="status" class="status"></div>
         </div>
     </div>
@@ -259,23 +283,29 @@
                 indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"
             });
             
-            updateStatus("Встановлення SymPy...");
-            await pyodide.loadPackage("micropip");
+            updateStatus("Встановлення бібліотек...");
+            await pyodide.loadPackage(["micropip", "numpy", "matplotlib"]);
+            
             await pyodide.runPythonAsync(`
                 import micropip
                 await micropip.install('sympy')
             `);
             
-            // Ініціалізуємо SymPy
+            // Ініціалізуємо SymPy та Matplotlib
             await pyodide.runPythonAsync(`
                 from sympy import *
                 from sympy.abc import *
+                import matplotlib.pyplot as plt
+                import numpy as np
+                import base64
+                from io import BytesIO
                 init_printing(use_unicode=True)
             `);
             
             updateStatus("Готово до обчислень!");
             pythonLoaded = true;
             document.getElementById('calculate-btn').disabled = false;
+            document.getElementById('graph-btn').disabled = false;
             
             // Ховаємо статус через 2 секунди
             setTimeout(() => {
@@ -370,6 +400,7 @@
             
             updateStatus("Обчислення...");
             document.getElementById('calculate-btn').disabled = true;
+            document.getElementById('graph-btn').disabled = true;
             
             try {
                 // Замінюємо символи назад на SymPy-зрозумілі форми
@@ -384,12 +415,13 @@
                 const result = await pyodide.runPythonAsync(`
                     from sympy import *
                     from sympy.abc import *
-                    expr = sympify("${processedExpr}", evaluate=False)
+                    expr = sympify("${processedExpr.replace(/"/g, '\\"')}", evaluate=False)
                     str(expr) + " = " + str(expr.doit())
                 `);
                 
                 // Виводимо результат
                 document.getElementById('math-output').innerHTML = result;
+                document.getElementById('graph-container').style.display = 'none';
                 document.getElementById('output-section').classList.add('fade-in');
                 updateStatus("Обчислення завершено");
             } catch (error) {
@@ -398,6 +430,94 @@
                 updateStatus("Сталася помилка");
             } finally {
                 document.getElementById('calculate-btn').disabled = false;
+                document.getElementById('graph-btn').disabled = false;
+                
+                // Ховаємо статус через 3 секунди
+                setTimeout(() => {
+                    document.getElementById('status').textContent = '';
+                }, 3000);
+            }
+        }
+        
+        // Функція для побудови графіка
+        async function plotExpression() {
+            if (!pythonLoaded) {
+                updateStatus("Python ще завантажується...");
+                return;
+            }
+            
+            const inputField = document.getElementById('math-input');
+            const expression = inputField.value.trim();
+            
+            if (!expression) {
+                updateStatus("Будь ласка, введіть функцію для графіка");
+                return;
+            }
+            
+            updateStatus("Побудова графіка...");
+            document.getElementById('calculate-btn').disabled = true;
+            document.getElementById('graph-btn').disabled = true;
+            
+            try {
+                // Замінюємо символи назад на SymPy-зрозумілі форми
+                let processedExpr = expression
+                    .replace(/π/g, 'pi')
+                    .replace(/√/g, 'sqrt')
+                    .replace(/∫/g, 'integrate')
+                    .replace(/∑/g, 'Sum')
+                    .replace(/∞/g, 'oo');
+                
+                // Генеруємо графік
+                const imageData = await pyodide.runPythonAsync(`
+                    from sympy import *
+                    from sympy.abc import x
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+                    import base64
+                    from io import BytesIO
+                    
+                    try:
+                        expr = sympify("${processedExpr.replace(/"/g, '\\"')}")
+                        f = lambdify(x, expr, modules=['numpy'])
+                        
+                        x_vals = np.linspace(-10, 10, 400)
+                        y_vals = f(x_vals)
+                        
+                        plt.figure(figsize=(8, 5))
+                        plt.plot(x_vals, y_vals, color='${getComputedStyle(document.documentElement)
+                            .getPropertyValue('--graph-color').trim()}')
+                        plt.title("Графік функції: ${processedExpr.replace(/"/g, '\\"')}")
+                        plt.grid(True)
+                        plt.xlabel('x')
+                        plt.ylabel('y')
+                        
+                        buf = BytesIO()
+                        plt.savefig(buf, format='png', dpi=100)
+                        plt.close()
+                        
+                        'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+                    except Exception as e:
+                        f"Помилка: {str(e)}"
+                `);
+                
+                if (imageData.startsWith('data:image/png;base64,')) {
+                    document.getElementById('graph-image').src = imageData;
+                    document.getElementById('graph-container').style.display = 'block';
+                    document.getElementById('math-output').textContent = `Графік функції: ${expression}`;
+                    updateStatus("Графік побудовано");
+                } else {
+                    document.getElementById('math-output').textContent = imageData;
+                    updateStatus("Помилка побудови графіка");
+                }
+                
+                document.getElementById('output-section').classList.add('fade-in');
+            } catch (error) {
+                document.getElementById('math-output').textContent = 
+                    `Помилка: ${error.message.split('\n')[0]}`;
+                updateStatus("Сталася помилка");
+            } finally {
+                document.getElementById('calculate-btn').disabled = false;
+                document.getElementById('graph-btn').disabled = false;
                 
                 // Ховаємо статус через 3 секунди
                 setTimeout(() => {
@@ -410,6 +530,7 @@
         function clearFields() {
             document.getElementById('math-input').value = '';
             document.getElementById('math-output').textContent = 'Введіть вираз та натисніть "Обчислити"...';
+            document.getElementById('graph-container').style.display = 'none';
             document.getElementById('math-input').focus();
         }
     </script>
