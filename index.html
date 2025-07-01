@@ -1,39 +1,112 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <title>Нескінченний конспект</title>
-    <style>
-        body { font-family: sans-serif; padding: 40px; background: #f5f5f5; color: #333; }
-        h2 { color: #0055aa; }
-        .section { margin-bottom: 40px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Конспект з фізики</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 40px;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #0055aa;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-top: 40px;
+      position: relative;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      padding: 15px 20px;
+      background: #fafafa;
+      border-left: 5px solid #3399ff;
+      border-radius: 5px;
+      transition: 0.3s ease;
+    }
+
+    .section.learned {
+      opacity: 0.6;
+      background-color: #e8f5e9;
+      border-left: 6px solid #4caf50;
+    }
+
+    .section input[type='checkbox'] {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    .reset-button {
+      margin-bottom: 30px;
+      background: #ff5252;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .reset-button:hover {
+      background: #e04040;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>📘 Нескінченний конспект з фізики</h1>
-    <div id="content">Завантаження...</div>
+  <h1>📘 Нескінченний конспект з фізики</h1>
+  <button class="reset-button" onclick="resetProgress()">🔄 Очистити позначки</button>
 
-    <script>
-        fetch('topics.txt')
-            .then(response => response.text())
-            .then(text => {
-                const contentDiv = document.getElementById('content');
-                const sections = text.split('===').map(s => s.trim()).filter(Boolean);
+  <!-- 🧪 Приклад тем -->
+  <div class="section" id="topic-0">
+    <h2><input type="checkbox" onchange="toggleLearned(this)">1. Кінематика</h2>
+    <p>Кінематика вивчає рух тіл без урахування причин. Формула: s = v · t</p>
+  </div>
 
-                const html = sections.map(section => {
-                    const [title, ...rest] = section.split('\n');
-                    const body = rest.join('<br>');
-                    return `<div class="section"><h2>${title}</h2><p>${body}</p></div>`;
-                }).join('');
+  <div class="section" id="topic-1">
+    <h2><input type="checkbox" onchange="toggleLearned(this)">2. Динаміка</h2>
+    <p>F = m · a — другий закон Ньютона, що визначає силу.</p>
+  </div>
 
-                contentDiv.innerHTML = html;
-            })
-            .catch(err => {
-                document.getElementById('content').innerHTML = '❌ Не вдалося завантажити теми.';
-                console.error(err);
-            });
-    </script>
+  <script>
+    // Завантаження прогресу з localStorage
+    document.querySelectorAll('.section').forEach((section, index) => {
+      const isLearned = localStorage.getItem('learned_' + index) === 'true';
+      const checkbox = section.querySelector('input[type="checkbox"]');
+      checkbox.checked = isLearned;
+      if (isLearned) section.classList.add('learned');
 
+      checkbox.addEventListener('change', () => {
+        section.classList.toggle('learned', checkbox.checked);
+        localStorage.setItem('learned_' + index, checkbox.checked);
+      });
+    });
+
+    function toggleLearned(checkbox) {
+      const section = checkbox.closest('.section');
+      section.classList.toggle('learned', checkbox.checked);
+    }
+
+    function resetProgress() {
+      if (confirm('Очистити всі позначки?')) {
+        document.querySelectorAll('.section').forEach((section, index) => {
+          const checkbox = section.querySelector('input[type="checkbox"]');
+          checkbox.checked = false;
+          section.classList.remove('learned');
+          localStorage.removeItem('learned_' + index);
+        });
+      }
+    }
+  </script>
 </body>
 </html>
